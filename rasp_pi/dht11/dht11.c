@@ -53,7 +53,6 @@ int dht11_read_val(){
             j++;
         }
     }
-    
     // verify checksum and print the verified data
     if((j>=39)&&(dht11_val[4]==((dht11_val[0]+dht11_val[1]+dht11_val[2]+dht11_val[3])& 0xFF))){
         printf("Humi:%d %%,TEMP:%d *C\n",dht11_val[0],dht11_val[2]);
@@ -62,14 +61,13 @@ int dht11_read_val(){
     else{
         printf("Check sum error\n");
         return 0;
-    }
+      }
 }
  
 int main(void){
     int attempts=ATTEMPTS;
-    if(wiringPiSetup()==-1){
+    if(wiringPiSetup()==-1)
         exit(1);
-    }
     while(attempts){                        //you have 5 times to retry
         printf("Try %d time\n",attempts);
         int success = dht11_read_val();     //get result including printing out
