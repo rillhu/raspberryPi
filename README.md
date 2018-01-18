@@ -27,3 +27,12 @@ paho.mqtt.embedded-c\MQTTPacket
 目前已修改为可以订阅一个topic，并且使用该topic发送payload
 使用test.mosquitto.org/作为MQTT broker
 
+
+工程：**MQTTPacket-onenet-dp-test**
+
+onenet MQTT datapoint 测试用例，使用类型3，简单上传固定温度和湿度。
+
+工程：**MQTTPacket-onenet-dht**
+
+onenet MQTT datapoint 测试用例，使用类型3，上传温度和湿度。并使用OLED显示
+
