@@ -126,8 +126,8 @@ void* pubsub_thread(void* arg)
 					&payload_in, &payloadlen_in, buf, buflen);
 			printf("message arrived %.*s\n", payloadlen_in, payload_in);
 
-            int len = (payloadlen_in>21)?20:payloadlen_in;
-            memset(pub_msg_get,0,21);
+            int len = (payloadlen_in>20)?20:payloadlen_in;
+            memset(pub_msg_get,'\0',21);
             memcpy(pub_msg_get,payload_in,len);
 		}
 
