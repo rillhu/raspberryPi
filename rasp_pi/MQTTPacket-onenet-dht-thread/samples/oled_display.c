@@ -92,6 +92,10 @@ void* oled_display_thread(void* arg)
         clock_string[8] = '\0';
         
         ssd1306_clear_screen(0x00);
+        
+        //ssd1306_draw_bitmap(0, 0, c_chGPRS88, 8, 8);
+        
+        ssd1306_draw_bitmap(0, 0, c_chSingal816, 16, 8);
         //line 1
         ssd1306_display_string(32-strlen(ip_string), 0, ip_string, FONT_1206, NORMAL);
         //line 2
