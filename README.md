@@ -9,6 +9,7 @@ gcc main.c ssd1306.c fonts.c  -o oled
 
 ##->DHT11+OLED
 工程：**dht_oled**
+
 gcc main.c ssd1306.c fonts.c  dht11.c  -lwiringPi -o oled
 
 ##->DHT11纯驱动库
@@ -16,10 +17,12 @@ gcc main.c ssd1306.c fonts.c  dht11.c  -lwiringPi -o oled
 
 ##->pcf8563
 工程：**pcf8563**
+
 读取pcf中的时分秒，并显示
 
 ##->led
 工程：**led**
+
 使用wiringPi库来控制LED的亮灭。27-blue，28-green，29-red
 
  |  19 |  24 | GPIO.24 |   IN | 0 | 35 || 36 | 0 | OUT  | GPIO.27 | 27  | 16  |
