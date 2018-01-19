@@ -109,6 +109,7 @@ void* pubsub_thread(void* arg)
     unsigned int loop_cnt = 0;
 	while (1)
 	{
+        
     	/* transport_getdata() has a built-in 1 second timeout,
 		your mileage will vary */
 		if (MQTTPacket_read(buf, buflen, transport_getdata) == PUBLISH)
@@ -124,11 +125,38 @@ void* pubsub_thread(void* arg)
 
 			rc = MQTTDeserialize_publish(&dup, &qos, &retained, &msgid, &receivedTopic,
 					&payload_in, &payloadlen_in, buf, buflen);
-			printf("message arrived %.*s\n", payloadlen_in, payload_in);
+            printf("topic recv: %.*s\n", receivedTopic.lenstring.len,receivedTopic.lenstring.data);
+			printf("message recv: %.*s\n", payloadlen_in, payload_in);
 
-            int len = (payloadlen_in>20)?20:payloadlen_in;
+            //copy received publish payload
             memset(pub_msg_get,'\0',21);
-            memcpy(pub_msg_get,payload_in,len);
+            int len = (payloadlen_in>20)?20:payloadlen_in;
+            memcpy(pub_msg_get,payload_in,len); 
+            
+            //Send onenet cmd reply.
+            char resp_topic[128];
+            memset(resp_topic, '\0',128);     
+            memcpy(resp_topic, receivedTopic.lenstring.data, 5);
+            //printf("resp_topic: %s\n",resp_topic);
+
+            if(strcmp(resp_topic,"$creq")==0){ //cmd: TopicName=”$creq/cmduuid”
+                printf("publishing sending cmd reply\n");
+
+                //reply: TopicName=”$crsp/cmduuid”    
+                memcpy(resp_topic, receivedTopic.lenstring.data, receivedTopic.lenstring.len);                        
+                resp_topic[3] = 's';            
+                resp_topic[4] = 'p';
+                
+                topicString.cstring = resp_topic;
+
+                char resp_payload[4];
+                memset(resp_payload, '\0',4);
+                memcpy(resp_payload, "OK",2);                
+                //printf("resp_payload: %s\n",resp_payload);
+                
+        		len = MQTTSerialize_publish(buf, buflen, 0, 0, 0, 0, topicString, (unsigned char*)resp_payload, strlen(resp_payload));
+        		rc = transport_sendPacketBuffer(mysock, buf, len);
+            }
 		}
 
         if(loop_cnt > 10){
