@@ -19,26 +19,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <errno.h>  
-  
-#include <netdb.h>  
-#include <net/if.h>  
-#include <arpa/inet.h>  
-#include <sys/ioctl.h>  
-#include <sys/types.h>  
-#include <sys/socket.h> 
 
-#include <time.h>
-
-#include "ssd1306.h"
-#include "fonts.h"
-
-
-#include "dht11.h"
-
+#include<pthread.h>
 
 #include "MQTTPacket.h"
 #include "transport.h"
+
+#include "dht11.h"
+#include "oled_display.h"
 
 /* This is in order to get an asynchronous signal to stop the sample,
 as the code loops waiting for msgs on the subscribed topic.
@@ -60,41 +48,23 @@ void stop_init(void)
 }
 
 
+unsigned int cnt_dp = 0;
 
-int get_local_ip(const char *eth_inf, char *ip)
-{
-    int sd;
-    struct sockaddr_in sin;
-    struct ifreq ifr;
 
-    sd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (-1 == sd) {
-        printf("socket error: %s\n", strerror(errno));
-        return -1;
-    }
-
-    strncpy(ifr.ifr_name, eth_inf, IFNAMSIZ);
-    ifr.ifr_name[IFNAMSIZ - 1] = 0;
-
-    // if error: No such device
-    if (ioctl(sd, SIOCGIFADDR, &ifr) < 0) {
-        printf("ioctl error: %s\n", strerror(errno));
-        close(sd);
-        return -1;
-    }
-
-    memcpy(&sin, &ifr.ifr_addr, sizeof(sin));
-    snprintf(ip, 16, "%s", inet_ntoa(sin.sin_addr));
-
-    close(sd);
-
-    return 0;
-}
 
 /* */
 
 int main(int argc, char *argv[])
 {
+
+    pthread_t dht_ids, oled_ids;
+    int rc1 = pthread_create(&dht_ids, NULL, dht11_read_thread, NULL);
+    if(rc1 != 0)    printf("%s: %d\n",__func__, (rc1));
+
+    rc1 = pthread_create(&oled_ids, NULL, oled_display_thread, NULL);
+    if(rc1 != 0)    printf("%s: %d\n",__func__, (rc1));
+    
+
 	MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
 	int rc = 0;
 	int mysock = 0;
@@ -106,7 +76,6 @@ int main(int argc, char *argv[])
 	char payload[128];// = "mypayload";
 	int payloadlen;// = strlen(payload);
 	int len = 0;
-	//char *host = "open.iot.10086.cn";
 	
 	char *host = "183.230.40.39";
 	int port = 6002;
@@ -171,44 +140,15 @@ int main(int argc, char *argv[])
 		goto exit;
 #endif
 
-    time_t time_now;
-    struct tm *time_local; 
-    char time_string[32];
-    char clock_string[16];
-    char ip_string[16];  
-    
-    //const char *eth = "eth0";  
-    const char *eth = "wlan0";  
-    unsigned int i = 0;
 
-    ssd1306_init();
+
 
 
 	/* loop getting msgs on subscribed topic */
-    unsigned int cnt_dp = 0;
 	while (!toStop)
 	{
-        get_dht11();
-        char str[64] = {0};
-        memset(str, '\0',64);
-        sprintf(str, "humi: %d%% temp: %d*C",dht_humi, dht_temp);
-        get_local_ip(eth,ip_string);  
-        time(&time_now);
-        time_local = localtime(&time_now);
-        sprintf(time_string, "%s", asctime(time_local));
-        strncpy(clock_string, time_string + 11, 8);
-        clock_string[8] = '\0';
-        ssd1306_clear_screen(0x00);
-        ssd1306_display_string(32-strlen(ip_string), 0, ip_string, FONT_1206, NORMAL);
-        ssd1306_display_string(0, 12, clock_string, FONT_1616, NORMAL);            
-        ssd1306_display_string(22-strlen(str), 28, str, FONT_1206, NORMAL);     
-        
-        memset(str, '\0',64);
-        sprintf(str, "MQTTonenet pub: %d",cnt_dp);        
-        ssd1306_display_string(0, 40, str, FONT_1206, NORMAL);        
-        ssd1306_refresh_gram();
-        
-		/* transport_getdata() has a built-in 1 second timeout,
+
+    	/* transport_getdata() has a built-in 1 second timeout,
 		your mileage will vary */
 		if (MQTTPacket_read(buf, buflen, transport_getdata) == PUBLISH)
 		{

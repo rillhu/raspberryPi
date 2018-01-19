@@ -36,3 +36,7 @@ onenet MQTT datapoint 测试用例，使用类型3，简单上传固定温度和
 
 onenet MQTT datapoint 测试用例，使用类型3，上传温度和湿度。并使用OLED显示
 
+工程：**MQTTPacket-onenet-dht-thread**
+
+onenet MQTT datapoint 测试用例，使用类型3，上传温度和湿度。并使用OLED显示。利用linux多线程技术，保证时间信息显示正确。
+
