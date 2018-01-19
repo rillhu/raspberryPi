@@ -10,9 +10,12 @@
 #include "transport.h"
 
 #include "dht11.h"
+#include <wiringPi.h>
+
 
 unsigned int cnt_dp = 0; //publish counter
 char pub_msg_get[21] = {'\0',};
+char onenet_pub_success = 0;
 
 /* */
 //int main(int argc, char *argv[])
@@ -145,8 +148,10 @@ void* pubsub_thread(void* arg)
             //mqtt_publish(client, "$dp", data, strlen(out)+3, 0, 0);
     		len = MQTTSerialize_publish(buf, buflen, 0, 0, 0, 0, topicString, (unsigned char*)data, strlen(payload)+3);
     		rc = transport_sendPacketBuffer(mysock, buf, len);
-            if(rc>0) cnt_dp++;
-            
+            if(rc>0){                
+                cnt_dp++;
+                onenet_pub_success = 1;
+            }
             free(data);
             data = NULL;
         }

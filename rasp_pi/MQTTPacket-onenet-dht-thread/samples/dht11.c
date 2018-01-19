@@ -5,6 +5,9 @@
 
 #include<pthread.h>
 
+#include "pub0sub1.h"
+
+
 #define MAX_TIME 85
 #define DHT11PIN 7
 #define ATTEMPTS 10                 //retry 5 times when no response
@@ -70,7 +73,8 @@ int dht11_read_val(){
         return 0;
     }
 }
- 
+
+#if 0
 int get_dht11(void)
 {
     int attempts=ATTEMPTS;
@@ -90,11 +94,15 @@ int get_dht11(void)
     }
     return 0;
 }
+#endif
 
 /*
  * thread1() will be execute by thread1, after pthread_create()
  * it will set g_Flag = 1;
  */
+char dht_read_success = 0;
+void* led_blink_thread(void* arg);
+
 void* dht11_read_thread(void* arg)
 {
 	printf("this is DHT11 thread, tid is %u\n", (unsigned int)pthread_self());
@@ -103,11 +111,16 @@ void* dht11_read_thread(void* arg)
         exit(1);
     }
     
+    pthread_t led_ids;
+    int rc1 = pthread_create(&led_ids, NULL, led_blink_thread, NULL);
+    if(rc1 != 0)    printf("%s: %d\n",__func__, (rc1));
+    
     while(1){                               
         int success = dht11_read_val();     //get result including printing out
         if (success) {                      //if get result, quit program; if not, retry 5 times then quit
             dht_humi = dht11_val[0];
-            dht_temp = dht11_val[2];
+            dht_temp = dht11_val[2]; 
+            dht_read_success = 1;
             //break;
         }
         delay(1000);
@@ -115,6 +128,31 @@ void* dht11_read_thread(void* arg)
 
 	printf("leave thread1\n");
 	pthread_exit(0);
+}
+
+
+void* led_blink_thread(void* arg)
+{    
+	printf("this is led thread, tid is %u\n", (unsigned int)pthread_self());
+    pinMode(27, OUTPUT);
+    pinMode(28, OUTPUT);
+    pinMode(29, OUTPUT);
+
+    while(1){
+        // 点亮500ms 熄灭500ms
+        if(dht_read_success){
+            digitalWrite(27, HIGH); delay(500);
+            digitalWrite(27, LOW);  //delay(500);
+            dht_read_success = 0;
+        }else if(onenet_pub_success){
+            digitalWrite(29, HIGH); delay(1000);
+            digitalWrite(29, LOW);  //delay(100);
+            onenet_pub_success = 0;
+        }
+        
+        delay(500);
+    }
+    
 }
 
 

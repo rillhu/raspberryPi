@@ -18,6 +18,21 @@ gcc main.c ssd1306.c fonts.c  dht11.c  -lwiringPi -o oled
 工程：**pcf8563**
 读取pcf中的时分秒，并显示
 
+##->led
+工程：**led**
+使用wiringPi库来控制LED的亮灭。27-blue，28-green，29-red
+
+ |  19 |  24 | GPIO.24 |   IN | 0 | 35 || 36 | 0 | OUT  | GPIO.27 | 27  | 16  |
+
+ |  26 |  25 | GPIO.25 |   IN | 0 | 37 || 38 | 0 | OUT  | GPIO.28 | 28  | 20  |
+
+ |     |     |      0v |      |   | 39 || 40 | 0 | OUT  | GPIO.29 | 29  | 21  |
+
+ +-----+-----+---------+------+---+----++----+---+------+---------+-----+-----+
+
+ | BCM | wPi |   Name  | Mode | V | Physical | V | Mode | Name    | wPi | BCM |
+
+
 ##MQTT
 工程：**paho.mqtt.embedded-c**
 

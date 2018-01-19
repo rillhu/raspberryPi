@@ -3,6 +3,7 @@
 
 unsigned int cnt_dp;
 char pub_msg_get[21];
+char onenet_pub_success;
 
 void* pubsub_thread(void* arg);
 
