@@ -12,7 +12,7 @@
 #include "dht11.h"
 
 unsigned int cnt_dp = 0; //publish counter
-char pub_msg_get[32] = {'m',0,};
+char pub_msg_get[21] = {'\0',};
 
 /* */
 //int main(int argc, char *argv[])
@@ -123,7 +123,8 @@ void* pubsub_thread(void* arg)
 					&payload_in, &payloadlen_in, buf, buflen);
 			printf("message arrived %.*s\n", payloadlen_in, payload_in);
 
-            int len = (payloadlen_in>21)?21:payloadlen_in;
+            int len = (payloadlen_in>21)?20:payloadlen_in;
+            memset(pub_msg_get,0,21);
             memcpy(pub_msg_get,payload_in,len);
 		}
 

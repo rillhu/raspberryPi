@@ -106,9 +106,10 @@ void* oled_display_thread(void* arg)
         memset(str, '\0',64);
         sprintf(str, "MQTTonenet pub: %d",cnt_dp);        
         ssd1306_display_string(0, 40, str, FONT_1206, NORMAL);           
-        //line 5
+        //line 5                
+        int len = strlen(pub_msg_get);        
+        if (len) memset(pub_msg_get + len, ' ', 21 - len);
         ssd1306_display_string(0, 52, pub_msg_get, FONT_1206, NORMAL); 
-        
         ssd1306_refresh_gram();
 
         usleep(100000);
