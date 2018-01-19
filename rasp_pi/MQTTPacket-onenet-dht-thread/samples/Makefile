@@ -12,7 +12,8 @@ SOURCES_CLIBS =  \
 	ssd1306.c \
 	fonts.c \
 	dht11.c \
-	oled_display.c
+	oled_display.c \
+	main.c
 
 SOURCES = $(SOURCES_CLIBS)
 OBJS := $(SOURCES:.c=.o)
@@ -20,7 +21,7 @@ OBJS := $(SOURCES:.c=.o)
 %.o : %.c 
 	$(CC) $(CFLAGS) -c $^ -o $@
 
-TARGETS = pub0sub1
+TARGETS = mqtt_onenet
 
 all: $(TARGETS)
 	echo C Files: $(SOURCES)
@@ -28,7 +29,7 @@ all: $(TARGETS)
 	echo $(TARGETS)
 
 
-pub0sub1: $(OBJS)
+mqtt_onenet: $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -o $@
 
 

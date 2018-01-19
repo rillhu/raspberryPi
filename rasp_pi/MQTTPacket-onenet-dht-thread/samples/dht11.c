@@ -97,7 +97,6 @@ int get_dht11(void)
  */
 void* dht11_read_thread(void* arg)
 {
-	printf("enter thread1\n");
 	printf("this is DHT11 thread, tid is %u\n", (unsigned int)pthread_self());
 
     if(wiringPiSetup()==-1){

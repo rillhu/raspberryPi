@@ -66,7 +66,6 @@ int get_local_ip(const char *eth_inf, char *ip)
  */
 void* oled_display_thread(void* arg)
 {
-	printf("enter oled\n");
 	printf("this is oled thread, tid is %u\n", (unsigned int)pthread_self());
 
     time_t time_now;
@@ -93,13 +92,19 @@ void* oled_display_thread(void* arg)
         clock_string[8] = '\0';
         
         ssd1306_clear_screen(0x00);
+        //line 1
         ssd1306_display_string(32-strlen(ip_string), 0, ip_string, FONT_1206, NORMAL);
-        ssd1306_display_string(0, 12, clock_string, FONT_1616, NORMAL);            
-        ssd1306_display_string(22-strlen(str), 28, str, FONT_1206, NORMAL);     
-        
+        //line 2
+        ssd1306_display_string(0, 12, clock_string, FONT_1616, NORMAL); 
+        //line 3
+        ssd1306_display_string(0, 28, str, FONT_1206, NORMAL);             
+        //line 4
         memset(str, '\0',64);
         sprintf(str, "MQTTonenet pub: %d",cnt_dp);        
-        ssd1306_display_string(0, 40, str, FONT_1206, NORMAL);        
+        ssd1306_display_string(0, 40, str, FONT_1206, NORMAL);           
+        //line 5
+        ssd1306_display_string(0, 52, pub_msg_get, FONT_1206, NORMAL); 
+        
         ssd1306_refresh_gram();
 
         usleep(100000);

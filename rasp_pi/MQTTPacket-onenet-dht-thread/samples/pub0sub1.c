@@ -1,19 +1,3 @@
-/*******************************************************************************
- * Copyright (c) 2014 IBM Corp.
- *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * and Eclipse Distribution License v1.0 which accompany this distribution.
- *
- * The Eclipse Public License is available at
- *    http://www.eclipse.org/legal/epl-v10.html
- * and the Eclipse Distribution License is available at
- *   http://www.eclipse.org/org/documents/edl-v10.php.
- *
- * Contributors:
- *    Ian Craggs - initial API and implementation and/or initial documentation
- *    Sergio R. Caprile - clarifications and/or documentation extension
- *******************************************************************************/
 
 #include <stdio.h>
 #include <string.h>
@@ -26,45 +10,16 @@
 #include "transport.h"
 
 #include "dht11.h"
-#include "oled_display.h"
 
-/* This is in order to get an asynchronous signal to stop the sample,
-as the code loops waiting for msgs on the subscribed topic.
-Your actual code will depend on your hw and approach*/
-#include <signal.h>
-
-int toStop = 0;
-
-void cfinish(int sig)
-{
-	signal(SIGINT, NULL);
-	toStop = 1;
-}
-
-void stop_init(void)
-{
-	signal(SIGINT, cfinish);
-	signal(SIGTERM, cfinish);
-}
-
-
-unsigned int cnt_dp = 0;
-
-
+unsigned int cnt_dp = 0; //publish counter
+char pub_msg_get[32] = {'m',0,};
 
 /* */
-
-int main(int argc, char *argv[])
-{
-
-    pthread_t dht_ids, oled_ids;
-    int rc1 = pthread_create(&dht_ids, NULL, dht11_read_thread, NULL);
-    if(rc1 != 0)    printf("%s: %d\n",__func__, (rc1));
-
-    rc1 = pthread_create(&oled_ids, NULL, oled_display_thread, NULL);
-    if(rc1 != 0)    printf("%s: %d\n",__func__, (rc1));
+//int main(int argc, char *argv[])
+void* pubsub_thread(void* arg)
+{    
+	printf("this is pubsub thread, tid is %u\n", (unsigned int)pthread_self());
     
-
 	MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
 	int rc = 0;
 	int mysock = 0;
@@ -80,17 +35,21 @@ int main(int argc, char *argv[])
 	char *host = "183.230.40.39";
 	int port = 6002;
 
+#if 0
 	stop_init();
 	if (argc > 1)
 		host = argv[1];
 
 	if (argc > 2)
 		port = atoi(argv[2]);
+#endif
 
 	mysock = transport_open(host, port);
-	if(mysock < 0)
-		return mysock;
-
+	if(mysock < 0){
+        printf("mysock: %d\n",mysock);
+		return 0;
+	}
+    
 	printf("Sending to hostname %s port %d\n", host, port);
 
     data.struct_id[3] = 'T';
@@ -115,8 +74,10 @@ int main(int argc, char *argv[])
 			goto exit;
 		}
 	}
-	else
+	else{
 		goto exit;
+	}
+    
 #if 0
 	/* subscribe */
 	topicString.cstring = "mytopic";
@@ -136,18 +97,15 @@ int main(int argc, char *argv[])
 			goto exit;
 		}
 	}
-	else
+	else{
 		goto exit;
+	}
 #endif
 
-
-
-
-
 	/* loop getting msgs on subscribed topic */
-	while (!toStop)
+    unsigned int loop_cnt = 0;
+	while (1)
 	{
-
     	/* transport_getdata() has a built-in 1 second timeout,
 		your mileage will vary */
 		if (MQTTPacket_read(buf, buflen, transport_getdata) == PUBLISH)
@@ -164,30 +122,35 @@ int main(int argc, char *argv[])
 			rc = MQTTDeserialize_publish(&dup, &qos, &retained, &msgid, &receivedTopic,
 					&payload_in, &payloadlen_in, buf, buflen);
 			printf("message arrived %.*s\n", payloadlen_in, payload_in);
+
+            int len = (payloadlen_in>21)?21:payloadlen_in;
+            memcpy(pub_msg_get,payload_in,len);
 		}
 
-		printf("publishing sending dp\n");
-        topicString.cstring = "$dp";
+        if(loop_cnt > 10){
+            loop_cnt = 0;
+    		printf("publishing sending dp\n");
+            topicString.cstring = "$dp";
+            
+            memset(payload,0,128);
+    		sprintf(payload,"{\"Temperature\":\"%d\", \"Humidity\":\"%d\"}",dht_temp,dht_humi);
+            printf("payload: %s\n",payload);
 
-        
-        memset(payload,0,128);
-		sprintf(payload,"{\"Temperature\":\"%d\", \"Humidity\":\"%d\"}",dht_temp,dht_humi);
-        printf("payload: %s\n",payload);
-
-        unsigned char *data = (char *)malloc(strlen(payload)+3);
-        data[0] = 3; //data type
-        data[1] = 0x00;
-        data[2] = strlen(payload);
-        memcpy(&data[3],payload,strlen(payload));
-        //mqtt_publish(client, "$dp", data, strlen(out)+3, 0, 0);
-		len = MQTTSerialize_publish(buf, buflen, 0, 0, 0, 0, topicString, (unsigned char*)data, strlen(payload)+3);
-		rc = transport_sendPacketBuffer(mysock, buf, len);
-        if(rc>0) cnt_dp++;
-        
-        free(data);
-        data = NULL;
-        usleep(100000);
-        
+            unsigned char *data = (char *)malloc(strlen(payload)+3);
+            data[0] = 3; //data type
+            data[1] = 0x00;
+            data[2] = strlen(payload);
+            memcpy(&data[3],payload,strlen(payload));
+            //mqtt_publish(client, "$dp", data, strlen(out)+3, 0, 0);
+    		len = MQTTSerialize_publish(buf, buflen, 0, 0, 0, 0, topicString, (unsigned char*)data, strlen(payload)+3);
+    		rc = transport_sendPacketBuffer(mysock, buf, len);
+            if(rc>0) cnt_dp++;
+            
+            free(data);
+            data = NULL;
+        }
+        loop_cnt ++;
+        sleep(1);        
 	}
 
 	printf("disconnecting\n");
