@@ -58,3 +58,4 @@ onenet MQTT datapoint 测试用例，使用类型3，上传温度和湿度。并
 
 onenet MQTT datapoint 测试用例，使用类型3，上传温度和湿度。并使用OLED显示。利用linux多线程技术，保证时间信息显示正确。
 
+同时，该工程处理了onenet的命令回复，reply: TopicName=”$crsp/cmduuid”  
