@@ -130,29 +130,35 @@ void* dht11_read_thread(void* arg)
 	pthread_exit(0);
 }
 
+#define R_LED_PIN 0
+#define G_LED_PIN 2
+#define B_LED_PIN 3
 
 void* led_blink_thread(void* arg)
 {    
 	printf("this is led thread, tid is %u\n", (unsigned int)pthread_self());
-    pinMode(27, OUTPUT);
-    pinMode(28, OUTPUT);
-    pinMode(29, OUTPUT);
+    // 设置IO口全部为输出状态
+    pinMode(R_LED_PIN, OUTPUT);
+    pinMode(G_LED_PIN, OUTPUT);
+    pinMode(B_LED_PIN, OUTPUT);
 
-    while(1){
-        // 点亮500ms 熄灭500ms
+    while(1){        
         if(dht_read_success){
-            digitalWrite(27, HIGH); delay(500);
-            digitalWrite(27, LOW);  //delay(500);
+            // 点亮1S
+            digitalWrite(R_LED_PIN, LOW); 
+            delay(1000); 
             dht_read_success = 0;
         }else if(onenet_pub_success){
-            digitalWrite(29, HIGH); delay(1000);
-            digitalWrite(29, LOW);  //delay(100);
+            // 点亮1S
+            digitalWrite(G_LED_PIN, LOW); 
+            delay(1000);            
             onenet_pub_success = 0;
         }
-        
+        //熄灭所有灯
+        digitalWrite(R_LED_PIN, HIGH);  
+        digitalWrite(G_LED_PIN, HIGH);  
         delay(500);
-    }
-    
+    }    
 }
 
 
