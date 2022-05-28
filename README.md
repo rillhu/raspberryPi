@@ -93,7 +93,7 @@ Current Time is 2:40:96
 ### ->led
 工程：**led**
 
-使用`wiringPi`库来控制LED的亮灭。`27-blue`，`28-green`，`29-red`
+使用`wiringPi`库来控制LED的亮灭。`27-blue`，`28-green`
 
 编译指令如下：
 
@@ -213,6 +213,7 @@ onenet MQTT datapoint 测试用例，使用类型3，上传温度和湿度。并
 
 ### 工程：**MQTTPacket-onenet-dht-thread**
 
-onenet MQTT datapoint 测试用例，使用类型3，上传温度和湿度。并使用OLED显示。利用linux多线程技术，保证时间信息显示正确。
-
-同时，该工程处理了onenet的命令回复，reply: TopicName=”$crsp/cmduuid”  
+onenet MQTT datapoint 测试用例，使用类型3，上传温度和湿度。并使用OLED显示。
+利用linux多线程技术，保证时间信息显示正确。
+同时利用RG——LED闪烁以显示读取温度传感器和上报数据成功。
+此外，该工程处理了onenet的命令回复，reply: TopicName=”$crsp/cmduuid”  
